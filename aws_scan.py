@@ -267,4 +267,31 @@ def check_lambda_throttling_or_errors(access, secret, region):
                         'Issue': metric_name
                     })
     return problematic_functions
+# New Performance Check: Lambda Throttling or Errors
+def check_lambda_throttling_or_errors(access, secret, region):
+    lambda_client = get_client('lambda', access, secret, region)
+    cloudwatch = get_client('cloudwatch', access, secret, region)
+    functions = lambda_client.list_functions()['Functions']
+    problematic_functions = []
+
+    for func in functions:
+        function_name = func['FunctionName']
+        for metric_name in ['Throttles', 'Errors']:
+            stats = cloudwatch.get_metric_statistics(
+                Period=3600,
+                StartTime=datetime(2025, 4, 1, tzinfo=timezone.utc),
+                EndTime=datetime(2025, 4, 7, 23, 59, 59, tzinfo=timezone.utc),
+                MetricName=metric_name,
+                Namespace='AWS/Lambda',
+                Statistics=['Sum'],
+                Dimensions=[{'Name': 'FunctionName', 'Value': function_name}]
+            )
+            if stats['Datapoints']:
+                if stats['Datapoints'][0]['Sum'] > 0:
+                    problematic_functions.append({
+                        'FunctionName': function_name,
+                        'Issue': metric_name
+                    })
+    return problematic_functions
+
 
