@@ -254,17 +254,17 @@ def check_lambda_throttling_or_errors(access, secret, region):
             stats = cloudwatch.get_metric_statistics(
                 Period=3600,
                 StartTime=datetime(2025, 4, 1, tzinfo=timezone.utc),
-OBOBOBOBOB                EndTime=datetime(2025, 4, 7, 23, 59, 59, tzinfo=timezone.utc),
-OBOB                MetricName=metric_name,
+                EndTime=datetime(2025, 4, 7, 23, 59, 59, tzinfo=timezone.utc),
+                MetricName=metric_name,
                 Namespace='AWS/Lambda',
-OBOBOBOB                Statistics=['Sum'],
-OB                Dimensions=[{'Name': 'FunctionName', 'Value': function_name}]
-OBOB            )
+                Statistics=['Sum'],
+                Dimensions=[{'Name': 'FunctionName', 'Value': function_name}]
+            )
             if stats['Datapoints']:
-OBOB                if stats['Datapoints'][0]['Sum'] > 0:
+                if stats['Datapoints'][0]['Sum'] > 0:
                     problematic_functions.append({
-OB                        'FunctionName': function_name,
-OBOB                        'Issue': metric_name
+                        'FunctionName': function_name,
+                        'Issue': metric_name
                     })
-OBOB    return problematic_functions
+    return problematic_functions
 

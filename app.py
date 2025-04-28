@@ -133,4 +133,3 @@ def calculate_risk_score(*args):
 
 if __name__ == "__main__":
     app.run(debug=True)
-`
