@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AWS Analyzer Results</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .card-content {
+      display: none;
+      margin-top: 0.5rem;
+    }
+    .expanded .card-content {
+      display: block;
+    }
+    .account-card {
+      background-color: #f8fafc;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .account-card-header {
+      background-color: #4c51bf;
+      color: white;
+      padding: 1rem;
+      border-radius: 0.5rem 0.5rem 0 0;
+    }
+    .account-card-body {
+      padding: 1.5rem;
+    }
+    .account-card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #2d3748;
+    }
+    .account-detail {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-4">
+      <a href="/" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+        ← Go Back
+      </a>
+    </div>
+
+    <h1 class="text-3xl font-bold text-center mb-6">AWS Account Analysis Results</h1>
+
+    <!-- Account Details Card -->
+    <div class="account-card mb-8">
+      <div class="account-card-header">
+        <h2 class="text-xl font-semibold">Account Information</h2>
+      </div>
+      <div class="account-card-body">
+        <div class="account-detail">
+          <p><strong>Account ID:</strong></p>
+          <p class="font-semibold text-gray-800">{{ account_id }}</p>
+        </div>
+        <div class="account-detail">
+          <p><strong>Username:</strong></p>
+          <p class="font-semibold text-gray-800">{{ username }}</p>
+        </div>
+        <div class="account-detail">
+          <p><strong>Scan Time:</strong></p>
+          <p class="font-semibold text-gray-800">{{ scantime }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Score -->
+    <p class="text-center text-lg mb-8">Overall Risk Score: <span class="font-bold text-red-600">{{ risk_score }}/100</span></p>
+
+    <!-- Checks Results Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for label, title, data, description in [
+        ('iam', 'IAM Admins', iam, 'Users with full AdministratorAccess permissions'),
+        ('mfa', 'IAM Users Without MFA', mfa, 'Users without Multi-Factor Authentication enabled'),
+        ('inactive_users', 'Inactive IAM Users', inactive_users, 'Users who haven’t logged in for 90+ days'),
+        ('old_keys', 'Old Access Keys', old_keys, 'Access keys not rotated for over 90 days'),
+        ('iam_roles', 'Unused IAM Roles', iam_roles, 'Roles without any attached policies'),
+        ('s3', 'Public S3 Buckets', s3, 'S3 buckets publicly accessible'),
+        ('unencrypted_s3', 'Unencrypted S3 Buckets', unencrypted_s3, 'S3 buckets without encryption'),
+        ('s3_versioning', 'S3 Buckets Without Versioning', s3_versioning, 'Buckets where versioning is not enabled'),
+        ('unencrypted_ebs', 'Unencrypted EBS Volumes', unencrypted_ebs, 'EBS volumes without encryption'),
+        ('ebs', 'Unused EBS Volumes', ebs, 'Available but unused EBS volumes'),
+        ('sg', 'Open Security Groups', sg, 'Security groups open to 0.0.0.0/0'),
+        ('cpu', 'High CPU EC2 Instances', cpu, 'Instances with >80% average CPU'),
+        ('underutilized_ec2', 'Underutilized EC2 Instances', underutilized_ec2, 'Instances with <10% average CPU'),
+        ('rds', 'High Storage RDS Instances', rds, 'RDS instances with <10GB free storage'),
+        ('lambdas', 'Long Duration Lambda Functions', lambdas, 'Lambdas with timeout >10s'),
+        ('lambda_errors', 'Lambda Errors/Throttling', lambda_errors, 'Functions with recent errors or throttles'),
+      ] %}
+      <div class="expandable-card relative bg-white p-4 rounded shadow cursor-pointer" onclick="toggleCard(this)">
+        <div class="absolute top-2 right-2 group">
+          <span class="text-gray-500 cursor-help">ℹ️</span>
+          <div class="absolute hidden group-hover:block bg-white text-sm text-gray-800 border border-gray-300 p-2 rounded shadow-md w-64 z-50">
+            {{ description }}
+          </div>
+        </div>
+        <p class="text-lg font-semibold">{{ title }}: {{ data|length }}</p>
+        
+        <div class="card-content">
+          <ul class="list-disc pl-6 mt-2 text-sm text-gray-700">
+            {% for item in data %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    function toggleCard(card) {
+      card.classList.toggle('expanded');
+    }
+  </script>
+</body>
+</html>
+
